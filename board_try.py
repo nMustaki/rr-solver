@@ -1,10 +1,10 @@
 import typing
 import constants
 from board import Board
-from exceptions import ImpossibleMove
+from game_exceptions import ImpossibleMove
 
 
-class BoardTry(object):
+class BoardTry:
     _leafs = []
     _result_board = None
 

@@ -1,11 +1,9 @@
-import typing
 import constants
 from board import Board
-from exceptions import ImpossibleMove
 from board_try import BoardTry
 
 
-class Game(object):
+class Game:
     _goals = list(constants.Goal)
 
     def __init__(self, board: Board):
@@ -31,6 +29,7 @@ class Game(object):
             main_robot, *other_robots = list(constants.Robot)
 
         current_tries = [BoardTry(start_board, None, None)]
+        nb_turns = 0
         for nb_turns in range(constants.MAX_TURNS):
             print(
                 "...move {}, {} possibilities".format(

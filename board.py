@@ -3,11 +3,11 @@ import copy
 
 import constants
 import displayer
-from exceptions import ImpossibleMove
+from game_exceptions import ImpossibleMove
 from case import Case
 
 
-class Board(object):
+class Board:
     _board = [[]] * 16
     _robot_positions = {}
     _goal_positions = {}
