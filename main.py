@@ -11,6 +11,6 @@ if __name__ == "__main__":
         seed = None
     random.seed(seed)
 
-    board = board_generator.generate()
-    game = Game(board)
+    board, goal_positions = board_generator.generate()
+    game = Game(board, goal_positions)
     game.resolve_all()

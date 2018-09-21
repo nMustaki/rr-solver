@@ -1,5 +1,4 @@
 import typing
-import copy
 
 import constants
 import displayer
@@ -8,23 +7,20 @@ from case import Case
 
 
 class Board:
-    _board = [[]] * 16
-    _robot_positions = {}
-    _goal_positions = {}
+    board = [[]] * 16
+    robot_positions = None
 
     def __init__(
         self,
-        robot_positions: dict,
-        goal_positions: dict,
+        robot_positions: typing.List[constants.Robot],
         board: typing.Optional[list] = None,
     ):
-        self._robot_positions = robot_positions
-        self._goal_positions = goal_positions
+        self.robot_positions = robot_positions
         if board:
-            self._board = board
+            self.board = board
 
     def move_robot(self, robot: constants.Robot, direction: constants.Direction):
-        current_i, current_j = self.robot_positions[robot]
+        current_i, current_j = self.robot_positions[robot.value]
         new_i, new_j = current_i, current_j
 
         while True:
@@ -76,23 +72,18 @@ class Board:
         return self.clone_on_move(robot, (new_i, new_j))
 
     def clone_on_move(self, robot: constants.Robot, robot_position: tuple):
-        new_robots_pos = dict(self.robot_positions)
-        prev_robot_position = new_robots_pos[robot]
-        new_robots_pos[robot] = robot_position
+        new_robots_pos = self.robot_positions.copy()
+        prev_robot_position = new_robots_pos[robot.value]
+        new_robots_pos[robot.value] = robot_position
 
-        new_board = Board(new_robots_pos, self.goal_positions, self.board.copy())
+        new_board = Board(new_robots_pos, self.board.copy())
 
         new_board.board[prev_robot_position[0]] = new_board.board[
             prev_robot_position[0]
         ].copy()
         prev_case = new_board.board[prev_robot_position[0]][prev_robot_position[1]]
         new_board.board[prev_robot_position[0]][prev_robot_position[1]] = Case(
-            prev_case.i,
-            prev_case.j,
-            prev_case.goal,
-            prev_case.laser,
-            prev_case.walls,
-            None,
+            prev_case.i, prev_case.j, prev_case.walls, None
         )
 
         if robot_position[0] != prev_robot_position[0]:
@@ -102,24 +93,12 @@ class Board:
 
         new_case = new_board.board[robot_position[0]][robot_position[1]]
         new_board.board[robot_position[0]][robot_position[1]] = Case(
-            new_case.i, new_case.j, new_case.goal, new_case.laser, new_case.walls, robot
+            new_case.i, new_case.j, new_case.walls, robot
         )
         return new_board
 
-    def is_goal_reached(self, robot: constants.Robot, goal: constants.Goal):
-        return self.robot_positions[robot] == self.goal_positions[goal]
+    def is_goal_reached(self, robot: constants.Robot, goal_position: tuple):
+        return self.robot_positions[robot.value] == goal_position
 
-    def display(self, goal: typing.Optional[constants.Goal] = None):
-        displayer.Displayer().display(self._board, goal)
-
-    @property
-    def board(self):
-        return self._board
-
-    @property
-    def robot_positions(self):
-        return self._robot_positions
-
-    @property
-    def goal_positions(self):
-        return self._goal_positions
+    def display(self, goal_positions, goal: typing.Optional[constants.Goal] = None):
+        displayer.Displayer().display(self.board, goal_positions, goal)

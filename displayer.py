@@ -8,7 +8,9 @@ import constants
 
 class Displayer:
     @staticmethod
-    def display(board, goal_to_display: typing.Optional[constants.Goal] = None):
+    def display(
+        board, goal_positions, goal_to_display: typing.Optional[constants.Goal] = None
+    ):
         colorama.init()
 
         for i in range(16):
@@ -18,7 +20,9 @@ class Displayer:
                 up_line.append(Displayer._gen_up_line_case(board, i, j))
 
                 middle_line.append(
-                    Displayer._gen_middle_line_case(board, i, j, goal_to_display)
+                    Displayer._gen_middle_line_case(
+                        board, i, j, goal_positions, goal_to_display
+                    )
                 )
 
             print("".join(up_line))
@@ -26,7 +30,7 @@ class Displayer:
         print(("+----" * 16) + "+")
 
     @staticmethod
-    def _gen_middle_line_case(board, i, j, goal_to_display=None):
+    def _gen_middle_line_case(board, i, j, goal_positions, goal_to_display=None):
         content = ""
         if (
             j == 0
@@ -41,7 +45,12 @@ class Displayer:
             content += "----"
         else:
             content += Displayer._gen_middle_line_case_robot(board[i][j].robot)
-            goal = board[i][j].goal
+            goal = None
+            for k, v in goal_positions.items():
+                if v == (i, j):
+                    goal = k
+                    break
+
             if goal_to_display and goal != goal_to_display:
                 goal = None
             content += Displayer._gen_middle_line_case_goal(goal)
@@ -74,8 +83,8 @@ class Displayer:
                 + unicodedata.lookup(image)
                 + colorama.Style.RESET_ALL
             )
-            # if image != "RAINBOW":
-            content += " "
+            if image != "RAINBOW":
+                content += " "
         else:
             content = "  "
         return content

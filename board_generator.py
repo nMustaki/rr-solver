@@ -16,9 +16,20 @@ def _gen_elems_positions():
     robot_positions_lst = random.choices(board, k=4)
     goal_positions_lst = random.choices(board, k=17)
 
-    robot_positions_dict = dict(zip(list(constants.Robot), robot_positions_lst))
+    # pypy doesn't know random.choices
+    # robot_positions_lst = []
+    # while len(robot_positions_lst) < 4:
+    #     pos = random.choice(board)
+    #     if pos not in robot_positions_lst:
+    #         robot_positions_lst.append(pos)
+    # goal_positions_lst = []
+    # while len(goal_positions_lst) < 17:
+    #     pos = random.choice(board)
+    #     if pos not in goal_positions_lst:
+    #         goal_positions_lst.append(pos)
+
     goal_positions_dict = dict(zip(list(constants.Goal), goal_positions_lst))
-    return robot_positions_dict, goal_positions_dict
+    return robot_positions_lst, goal_positions_dict
 
 
 def generate():
@@ -40,7 +51,7 @@ def generate():
     # X X X X X X X X X X X X X X X X
 
     robot_positions, goal_positions = _gen_elems_positions()
-    board = Board(robot_positions, goal_positions)
+    board = Board(robot_positions)
 
     close_set = set((constants.Wall.UP, constants.Wall.LEFT))
     for i in range(16):
@@ -50,7 +61,7 @@ def generate():
             robot, goal, walls = None, None, set()
 
             if (7 <= i < 9) and (7 <= j < 9):
-                board.board[i][j] = Case(i, j, None, None, list(constants.Wall), None)
+                board.board[i][j] = Case(i, j, list(constants.Wall), None)
             else:
                 if i == 0 or constants.Wall.DOWN in board.board[i - 1][j].walls:
                     walls.add(constants.Wall.UP)
@@ -77,9 +88,7 @@ def generate():
                         walls = walls.union(constants.CASE_WALLS)
 
                 try:
-                    robot = list(constants.Robot)[
-                        list(robot_positions.values()).index((i, j))
-                    ]
+                    robot = list(constants.Robot)[robot_positions.index((i, j))]
                 except ValueError:
                     pass
                 try:
@@ -88,5 +97,5 @@ def generate():
                     ]
                 except ValueError:
                     pass
-                board.board[i][j] = Case(i, j, goal, None, set(walls), robot)
-    return board
+                board.board[i][j] = Case(i, j, set(walls), robot)
+    return board, goal_positions

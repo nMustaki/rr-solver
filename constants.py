@@ -6,10 +6,12 @@ MAX_TURNS = 10
 
 @enum.unique
 class Robot(enum.Enum):
-    GREEN = enum.auto()
-    BLUE = enum.auto()
-    YELLOW = enum.auto()
-    RED = enum.auto()
+    """Value is also used as index in robot_positions list"""
+
+    GREEN = 0
+    BLUE = 1
+    YELLOW = 2
+    RED = 3
 
 
 @enum.unique
@@ -33,10 +35,10 @@ class Goal(enum.Enum):
     RED_CROSS = "Rcr"
 
 
-GOAL_PLANET = [Goal.GREEN_PLANET, Goal.BLUE_PLANET, Goal.YELLOW_PLANET, Goal.RED_PLANET]
-GOAL_COGS = [Goal.GREEN_COGS, Goal.BLUE_COGS, Goal.YELLOW_COGS, Goal.RED_COGS]
-GOAL_CIRCLE = [Goal.GREEN_CIRCLE, Goal.BLUE_CIRCLE, Goal.YELLOW_CIRCLE, Goal.RED_CIRCLE]
-GOAL_CROSS = [Goal.GREEN_CROSS, Goal.BLUE_CROSS, Goal.YELLOW_CROSS, Goal.RED_CROSS]
+GOAL_PLANET = (Goal.GREEN_PLANET, Goal.BLUE_PLANET, Goal.YELLOW_PLANET, Goal.RED_PLANET)
+GOAL_COGS = (Goal.GREEN_COGS, Goal.BLUE_COGS, Goal.YELLOW_COGS, Goal.RED_COGS)
+GOAL_CIRCLE = (Goal.GREEN_CIRCLE, Goal.BLUE_CIRCLE, Goal.YELLOW_CIRCLE, Goal.RED_CIRCLE)
+GOAL_CROSS = (Goal.GREEN_CROSS, Goal.BLUE_CROSS, Goal.YELLOW_CROSS, Goal.RED_CROSS)
 
 
 GOAL_TO_ROBOT = {
@@ -61,18 +63,18 @@ GOAL_TO_ROBOT = {
 
 @enum.unique
 class Laser(enum.Enum):
-    GREEN = enum.auto()
-    BLUE = enum.auto()
-    YELLOW = enum.auto()
-    RED = enum.auto()
+    GREEN = 0
+    BLUE = 1
+    YELLOW = 2
+    RED = 3
 
 
 @enum.unique
 class Wall(enum.Enum):
-    UP = enum.auto()
-    RIGHT = enum.auto()
-    DOWN = enum.auto()
-    LEFT = enum.auto()
+    UP = 0
+    RIGHT = 1
+    DOWN = 2
+    LEFT = 3
 
 
 CASE_WALLS = [Wall.RIGHT, Wall.DOWN]
@@ -80,7 +82,7 @@ CASE_WALLS = [Wall.RIGHT, Wall.DOWN]
 
 @enum.unique
 class Direction(enum.Enum):
-    UP = enum.auto()
-    RIGHT = enum.auto()
-    DOWN = enum.auto()
-    LEFT = enum.auto()
+    UP = 0
+    RIGHT = 1
+    DOWN = 2
+    LEFT = 3
