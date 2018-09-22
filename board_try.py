@@ -32,7 +32,6 @@ class BoardTry:
         seen_positions: set,
     ):
 
-        main_robot = robots[0] if goal != constants.Goal.ANY else None
         for robot in robots:
             main_robot = robots[0] if goal != constants.Goal.ANY else robot
             for direction in constants.Direction:
