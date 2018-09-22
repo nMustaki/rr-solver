@@ -42,7 +42,7 @@ class Game:
         for nb_turns in range(constants.MAX_TURNS):
             print(
                 "...move {}, {} possibilities".format(
-                    str(nb_turns + 1), len(current_tries)
+                    str(nb_turns + 2), len(current_tries)
                 )
             )
             new_tries = []
@@ -51,9 +51,16 @@ class Game:
                     goal_position, goal, robots, seen_positions
                 )
                 if successful_try:
-                    successful_try.result_board.display(self.goal_positions)
-                    print("...resolved in {} turns".format(nb_turns + 1))
+                    moves = [successful_try]
+                    ancestor = successful_try
+                    while ancestor.parent:
+                        moves.append(ancestor.parent)
+                        ancestor = ancestor.parent
+                    for elem in reversed(moves):
+                        elem.result_board.display(self.goal_positions, goal)
+                    # successful_try.result_board.display(self.goal_positions)
+                    print("...resolved in {} turns".format(nb_turns + 2))
                     return successful_try.result_board
                 new_tries.extend(current_try.leafs)
             current_tries = new_tries
-        raise ValueError("No solution found in {}".format(nb_turns + 1))
+        raise ValueError("No solution found in {}".format(nb_turns + 2))
