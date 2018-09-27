@@ -1,5 +1,6 @@
 
 import typing
+import datetime
 
 import constants
 from board import Board
@@ -7,60 +8,105 @@ from board_try import BoardTry
 
 
 class Game:
-    _goals = list(constants.Goal)
+    _goals = constants.GOALS
 
-    def __init__(
-        self, board: Board, goal_positions: typing.Dict[constants.Goal, tuple]
-    ):
+    def __init__(self, board: Board, goal_positions: typing.Dict[str, tuple]):
         self._board = board
         self.goal_positions = goal_positions
 
     def resolve_all(self):
         current_board = self._board
+        start_time = datetime.datetime.now()
         for goal in self._goals:
-            print("Resolving " + str(goal))
+            print("Resolving", str(goal), self.goal_positions[goal])
             current_board.display(self.goal_positions, goal)
-            current_board = self.resolve_goal(
-                current_board, goal, self.goal_positions[goal]
-            )
+            current_board = self.resolve_goal(current_board, goal, self.goal_positions[goal])
             print("")
             print("")
             print("")
+        print(datetime.datetime.now() - start_time)
 
-    def resolve_goal(
-        self, start_board: Board, goal: constants.Goal, goal_position: tuple
-    ):
-        if goal != constants.Goal.ANY:
+    def resolve_goal(self, start_board: Board, goal, goal_position: tuple):
+        if goal != constants.GOAL_ANY:
             main_robot = constants.GOAL_TO_ROBOT[goal]
-            robots = sorted(constants.Robot, key=lambda k: 0 if k == main_robot else 1)
+            robots = sorted(constants.ROBOTS, key=lambda k: 0 if k == main_robot else 1)
         else:
-            robots = list(constants.Robot)
+            robots = constants.ROBOTS
 
-        current_tries = [BoardTry(start_board, None, None)]
+        branches = [[BoardTry(start_board, None, None)]]
+        fast_branches = []
+        hint_positions = self._find_hint_positions(branches[0][0], goal_position)
         nb_turns = 0
         seen_positions = set()
         for nb_turns in range(constants.MAX_TURNS):
             print(
-                "...move {}, {} possibilities".format(
-                    str(nb_turns + 2), len(current_tries)
+                "...move {}, {} moves to investigate".format(
+                    nb_turns + 1,
+                    sum([len(branch) for branch in branches]) * 16
+                    + sum([len(branch) for branch in fast_branches]) * 16,
                 )
             )
-            new_tries = []
-            for current_try in current_tries:
-                successful_try = current_try.gen_leafs(
-                    goal_position, goal, robots, seen_positions
-                )
-                if successful_try:
-                    moves = [successful_try]
-                    ancestor = successful_try
-                    while ancestor.parent:
-                        moves.append(ancestor.parent)
-                        ancestor = ancestor.parent
-                    for elem in reversed(moves):
-                        elem.result_board.display(self.goal_positions, goal)
-                    # successful_try.result_board.display(self.goal_positions)
-                    print("...resolved in {} turns".format(nb_turns + 2))
-                    return successful_try.result_board
-                new_tries.extend(current_try.leafs)
-            current_tries = new_tries
-        raise ValueError("No solution found in {}".format(nb_turns + 2))
+            new_branches = []
+            new_fast_branches = []
+            nb_leaves = 0
+
+            for branch in fast_branches:
+                for leaf in branch:
+                    if (nb_leaves % 100000) == 0:
+                        print("...{} leaves: {} (fast)".format(nb_leaves, datetime.datetime.now()))
+                        nb_leaves += 1
+
+                    successful_try, leaves, fast_leaves = leaf.gen_leaves(
+                        goal_position, goal, robots, seen_positions, hint_positions
+                    )
+                    if successful_try:
+                        return self._display_successful(nb_turns, successful_try, goal)
+
+                    new_branches.append(leaves)
+                    new_fast_branches.append(fast_leaves)
+
+            for branch in branches:
+                for leaf in branch:
+                    if (nb_leaves % 10000) == 0:
+                        print("...{} moves: {}".format(nb_leaves, datetime.datetime.now()))
+                    nb_leaves += 1
+
+                    successful_try, leaves, fast_leaves = leaf.gen_leaves(
+                        goal_position, goal, robots, seen_positions, hint_positions
+                    )
+                    if successful_try:
+                        return self._display_successful(nb_turns, successful_try, goal)
+
+                    new_branches.append(leaves)
+                    new_fast_branches.append(fast_leaves)
+
+            branches = new_branches
+            fast_branches = new_fast_branches
+
+        raise ValueError("No solution found in {} turns".format(nb_turns + 1))
+
+    def _display_successful(self, nb_turns, successful_try, goal):
+        moves = [successful_try]
+        ancestor = successful_try
+        while ancestor.parent:
+            moves.append(ancestor.parent)
+            ancestor = ancestor.parent
+        for elem in reversed(moves):
+            elem.result_board.display(self.goal_positions, goal)
+        # successful_try.result_board.display(self.goal_positions, goal)
+        print("...resolved in {} turns".format(nb_turns + 1))
+        return successful_try.result_board
+
+    def _find_hint_positions(self, root_try, goal_position):
+        min_i, max_i, min_j, max_j = (goal_position[0], goal_position[0], goal_position[1], goal_position[1])
+
+        # Try to go up as much as possible
+        while min_i > 0 and root_try.root_board.is_move_hintable(min_i, goal_position[1], constants.DIRECTION_UP):
+            min_i -= 1
+        while max_i < 15 and root_try.root_board.is_move_hintable(max_i, goal_position[1], constants.DIRECTION_DOWN):
+            max_i += 1
+        while min_j > 0 and root_try.root_board.is_move_hintable(goal_position[0], min_j, constants.DIRECTION_LEFT):
+            min_j -= 1
+        while max_j < 15 and root_try.root_board.is_move_hintable(goal_position[0], max_j, constants.DIRECTION_RIGHT):
+            max_j += 1
+        return (min_i, max_i), (min_j, max_j)

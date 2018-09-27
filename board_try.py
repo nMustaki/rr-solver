@@ -5,62 +5,51 @@ from game_exceptions import ImpossibleMove
 
 
 class BoardTry:
-    leafs = []
-    _result_board = None
+    result_board = None
 
-    def __init__(
-        self,
-        root_board: Board,
-        robot: constants.Robot,
-        direction: constants.Direction,
-        parent=None,
-    ):
+    def __init__(self, root_board: Board, robot: int, direction: int, parent=None):
         self.root_board = root_board
         self.robot = robot
         self.direction = direction
         self.parent = parent
-        if robot:
-            self._result_board = root_board.move_robot(robot, direction)
+        if robot is not None:
+            self.result_board = root_board.move_robot(robot, direction)
         else:
-            self._result_board = root_board
+            self.result_board = root_board
 
-    def gen_leafs(
+    def gen_leaves(
         self,
         goal_position: tuple,
-        goal: constants.Goal,
-        robots: typing.List[constants.Robot],
+        goal: str,
+        robots: typing.List[int],
         seen_positions: set,
+        hint_positions: typing.List[tuple],
     ):
-
+        leaves = []
+        fast_leaves = []
         for robot in robots:
-            main_robot = robots[0] if goal != constants.Goal.ANY else robot
-            for direction in constants.Direction:
+            main_robot = robots[0] if goal != constants.GOAL_ANY else robot
+            for direction in constants.DIRECTIONS:
                 try:
+
                     current_try = BoardTry(self.result_board, robot, direction, self)
-                    if main_robot and current_try.is_successful(
-                        main_robot, goal_position
-                    ):
-                        return current_try
-                    if (
-                        current_try.result_board.robot_positions[robot.value]
-                        != self.result_board.robot_positions[robot.value]
-                    ):
-                        sorted_positions = tuple(
-                            sorted(
-                                current_try.result_board.robot_positions,
-                                key=lambda k: [k[1], k[0]],
-                            )
-                        )
-                        if sorted_positions not in seen_positions:
-                            self.leafs.append(current_try)
-                            seen_positions.add(sorted_positions)
+
+                    if robot == main_robot:
+                        if current_try.result_board.is_goal_reached(main_robot, goal_position):
+                            return current_try, leaves, fast_leaves
+
+                    if tuple(current_try.result_board.robot_positions) not in seen_positions:
+                        seen_positions.add(tuple(current_try.result_board.robot_positions))
+
+                        try_robot_pos = current_try.result_board.robot_positions[robot]
+                        if (
+                            robot == main_robot
+                            and (hint_positions[0][0] <= try_robot_pos[0] <= hint_positions[0][1])
+                            or (hint_positions[1][0] <= try_robot_pos[1] <= hint_positions[1][1])
+                        ):
+                            fast_leaves.append(current_try)
+                        else:
+                            leaves.append(current_try)
                 except ImpossibleMove:
                     pass
-        return None
-
-    def is_successful(self, robot: constants.Robot, goal_position: tuple):
-        return self.result_board.is_goal_reached(robot, goal_position)
-
-    @property
-    def result_board(self):
-        return self._result_board or self.root_board
+        return None, leaves, fast_leaves

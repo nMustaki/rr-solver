@@ -8,9 +8,7 @@ import constants
 
 class Displayer:
     @staticmethod
-    def display(
-        board, goal_positions, goal_to_display: typing.Optional[constants.Goal] = None
-    ):
+    def display(board, goal_positions, goal_to_display: typing.Optional[str] = None):
         colorama.init()
 
         for i in range(16):
@@ -19,11 +17,7 @@ class Displayer:
             for j in range(16):
                 up_line.append(Displayer._gen_up_line_case(board, i, j))
 
-                middle_line.append(
-                    Displayer._gen_middle_line_case(
-                        board, i, j, goal_positions, goal_to_display
-                    )
-                )
+                middle_line.append(Displayer._gen_middle_line_case(board, i, j, goal_positions, goal_to_display))
 
             print("".join(up_line))
             print("".join(middle_line))
@@ -34,8 +28,8 @@ class Displayer:
         content = ""
         if (
             j == 0
-            or (constants.Wall.LEFT in board[i][j].walls)
-            or (j > 0 and constants.Wall.RIGHT in board[i][j - 1].walls)
+            or (constants.WALL_LEFT in board[i][j].walls)
+            or (j > 0 and constants.WALL_RIGHT in board[i][j - 1].walls)
         ):
             content += "|"
         else:
@@ -61,21 +55,21 @@ class Displayer:
     @staticmethod
     def _gen_middle_line_case_goal(goal):
         if goal:
-            if goal in constants.GOAL_CIRCLE:
+            if goal in constants.GOALS_CIRCLE:
                 image = "UPPER RIGHT SHADOWED WHITE CIRCLE"
 
-            elif goal in constants.GOAL_COGS:
+            elif goal in constants.GOALS_COGS:
                 image = "HEAVY TEARDROP-SPOKED PINWHEEL ASTERISK"
-            elif goal in constants.GOAL_PLANET:
+            elif goal in constants.GOALS_PLANET:
                 image = "PINWHEEL STAR"
-            elif goal in constants.GOAL_CROSS:
+            elif goal in constants.GOALS_CROSS:
                 image = "OPEN CENTRE CROSS"
 
-            if goal == constants.Goal.ANY:
+            if goal == constants.GOAL_ANY:
                 image = "RAINBOW"
                 color = "MAGENTA"
             else:
-                color = goal.name.split("_")[0]
+                color = constants.GOAL_TO_COLORS[goal]
 
             content = (
                 getattr(colorama.Fore, color)
@@ -93,22 +87,20 @@ class Displayer:
     def _gen_middle_line_case_robot(robot):
         try:
             return (
-                getattr(colorama.Fore, robot.name)
+                getattr(colorama.Fore, constants.ROBOT_TO_COLORS[robot])
                 + colorama.Style.BRIGHT
                 + unicodedata.lookup("robot face")
                 + colorama.Style.RESET_ALL
                 # + " "
             )
-        except AttributeError:
+        except (AttributeError, KeyError):
             return "  "
 
     @staticmethod
     def _gen_up_line_case(board, i, j):
         content = ""
 
-        if (constants.Wall.UP in board[i][j].walls) or (
-            i > 0 and constants.Wall.DOWN in board[i - 1][j].walls
-        ):
+        if (constants.WALL_UP in board[i][j].walls) or (i > 0 and constants.WALL_DOWN in board[i - 1][j].walls):
             content = "+----"
         else:
             content = "+    "

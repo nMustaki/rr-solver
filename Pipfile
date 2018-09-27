@@ -7,16 +7,13 @@ name = "pypi"
 
 [dev-packages]
 
-pylint = "*"
-black = "*"
-rope = "*"
 
 
 [packages]
 
 black = "*"
-pylint = "*"
 colorama = "*"
+pylint = "*"
 
 
 [requires]
