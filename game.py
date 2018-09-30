@@ -40,10 +40,9 @@ class Game:
         seen_positions = set()
         for nb_turns in range(constants.MAX_TURNS):
             print(
-                "...move {}, {} moves to investigate".format(
+                "move {}, at most {:,} moves to investigate".format(
                     nb_turns + 1,
-                    sum([len(branch) for branch in branches]) * 16
-                    + sum([len(branch) for branch in fast_branches]) * 16,
+                    sum([len(branch) for branch in branches]) + sum([len(branch) for branch in fast_branches]),
                 )
             )
             new_branches = []
@@ -53,7 +52,7 @@ class Game:
             for branch in fast_branches:
                 for leaf in branch:
                     if (nb_leaves % 100000) == 0:
-                        print("...{} leaves: {} (fast)".format(nb_leaves, datetime.datetime.now()))
+                        print("...{:,} moves: {} (fast)".format(nb_leaves, datetime.datetime.now()))
                         nb_leaves += 1
 
                     successful_try, leaves, fast_leaves = leaf.gen_leaves(
@@ -64,11 +63,13 @@ class Game:
 
                     new_branches.append(leaves)
                     new_fast_branches.append(fast_leaves)
+            print("......{:,} fast leaves investigated".format(nb_leaves))
 
+            tmp_nb_leaves = nb_leaves
             for branch in branches:
                 for leaf in branch:
                     if (nb_leaves % 10000) == 0:
-                        print("...{} moves: {}".format(nb_leaves, datetime.datetime.now()))
+                        print("...{:,} moves: {}".format(nb_leaves, datetime.datetime.now()))
                     nb_leaves += 1
 
                     successful_try, leaves, fast_leaves = leaf.gen_leaves(
@@ -79,6 +80,7 @@ class Game:
 
                     new_branches.append(leaves)
                     new_fast_branches.append(fast_leaves)
+            print("......{:,} leaves investigated".format(nb_leaves - tmp_nb_leaves))
 
             branches = new_branches
             fast_branches = new_fast_branches
@@ -89,11 +91,21 @@ class Game:
         moves = [successful_try]
         ancestor = successful_try
         while ancestor.parent:
-            moves.append(ancestor.parent)
+            if ancestor.parent.parent:
+                moves.append(ancestor.parent)
             ancestor = ancestor.parent
+
+        prev_elem = ancestor
         for elem in reversed(moves):
+            for robot in constants.ROBOTS:
+                if elem.result_board.robot_positions[robot] != prev_elem.result_board.robot_positions[robot]:
+                    print(
+                        "Moving {} robot to {}".format(
+                            constants.ROBOT_TO_COLORS[robot], elem.result_board.robot_positions[robot]
+                        )
+                    )
             elem.result_board.display(self.goal_positions, goal)
-        # successful_try.result_board.display(self.goal_positions, goal)
+            prev_elem = elem
         print("...resolved in {} turns".format(nb_turns + 1))
         return successful_try.result_board
 

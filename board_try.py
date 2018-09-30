@@ -33,7 +33,12 @@ class BoardTry:
                 try:
 
                     current_try = BoardTry(self.result_board, robot, direction, self)
+                    # if goal == constants.GOAL_YELLOW_PLANET and current_try.result_board.robot_positions[
+                    #     constants.ROBOT_YELLOW
+                    # ] == (7, 3):
+                    #     import ipdb
 
+                    #     ipdb.set_trace()
                     if robot == main_robot:
                         if current_try.result_board.is_goal_reached(main_robot, goal_position):
                             return current_try, leaves, fast_leaves

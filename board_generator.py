@@ -6,12 +6,7 @@ from board import Board
 
 
 def _gen_elems_positions():
-    board = [
-        (i, j)
-        for i in range(16)
-        for j in range(16)
-        if not ((7 <= i < 9) and (7 <= j < 9))
-    ]
+    board = [(i, j) for i in range(16) for j in range(16) if not ((7 <= i < 9) and (7 <= j < 9))]
 
     # robot_positions_lst = random.choices(board, k=4)
     # goal_positions_lst = random.choices(board, k=17)
@@ -67,22 +62,17 @@ def generate():
                     walls.add(constants.WALL_UP)
                 if j == 0 or constants.WALL_RIGHT in board.board[i][j - 1].walls:
                     walls.add(constants.WALL_LEFT)
-                if i == 15:
+                if i == 15 or (i == 6 and j in (7, 8)):
                     walls.add(constants.WALL_DOWN)
-                if j == 15:
+                if j == 15 or (j == 6 and i in (7, 8)):
                     walls.add(constants.WALL_RIGHT)
 
                 if not close_set.issubset(walls) and random.random() < 0.12:
                     if i in (0, 15):
-                        if not (
-                            j > 0
-                            and constants.WALL_RIGHT in board.board[i][j - 1].walls
-                        ):
+                        if not (j > 0 and constants.WALL_RIGHT in board.board[i][j - 1].walls):
                             walls.add(constants.WALL_RIGHT)
                     elif j in (0, 15):
-                        if not (
-                            i > 0 and constants.WALL_DOWN in board.board[i - 1][j].walls
-                        ):
+                        if not (i > 0 and constants.WALL_DOWN in board.board[i - 1][j].walls):
                             walls.add(constants.WALL_DOWN)
                     else:
                         walls = walls.union(constants.CASE_WALLS)
